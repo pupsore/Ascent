@@ -679,19 +679,6 @@ local Library do
 
         return NewThread
     end
-    
-    Library.SafeCall = function(self, Function, ...)
-        local Arguements = { ... }
-        local Success, Result = pcall(Function, TableUnpack(Arguements))
-
-        if not Success then
-            Library:Notification("Error caught in function, report this to the devs:\n"..Result, 5, FromRGB(255, 0, 0))
-            warn(Result)
-            return false
-        end
-
-        return Success
-    end
 
     Library.Connect = function(self, Event, Callback, Name)
         Name = Name or StringFormat("Connection_%s_%s", self.UnnamedConnections + 1, HttpService:GenerateGUID(false))
@@ -783,23 +770,17 @@ local Library do
                 end
             end
         end)
-
-        if Success then 
-            Library:Notification("Successfully loaded config", 5, FromRGB(0, 255, 0))
-        end
     end
 
     Library.DeleteConfig = function(self, Config)
         if isfile(Library.Folders.Configs .. "/" .. Config) then 
             delfile(Library.Folders.Configs .. "/" .. Config)
-            Library:Notification("Deleted config " .. Config .. ".json", 5, FromRGB(0, 255, 0))
         end
     end
 
     Library.SaveConfig = function(self, Config)
         if isfile(Library.Folders.Configs .. "/" .. Config) then
             writefile(Library.Folders.Configs .. "/" .. Config, Library:GetConfig())
-            Library:Notification("Saved config " .. Config .. ".json", 5, FromRGB(0, 255, 0))
         end
     end
 
@@ -860,23 +841,17 @@ local Library do
                 end
             end
         end)
-
-        if Success then 
-            Library:Notification("Successfully loaded theme", 5, FromRGB(0, 255, 0))
-        end
     end
 
     Library.DeleteTheme = function(self, Theme)
         if isfile(Library.Folders.Themes .. "/" .. Theme) then 
             delfile(Library.Folders.Themes .. "/" .. Theme)
-            Library:Notification("Deleted theme " .. Theme .. ".json", 5, FromRGB(0, 255, 0))
         end
     end
 
     Library.SaveTheme = function(self, Theme)
         if isfile(Library.Folders.Themes .. "/" .. Theme) then
             writefile(Library.Folders.Themes .. "/" .. Theme, Library:GetTheme())
-            Library:Notification("Saved theme " .. Theme .. ".json", 5, FromRGB(0, 255, 0))
         end
     end
 
@@ -1169,142 +1144,6 @@ local Library do
         end
 
         return KeybindList
-    end
-
-    Library.Notification = function(self, Text, Duration, Color, Icon)
-        local Items = { } do
-            Items["Notification"] = Instances:Create("Frame", {
-                Parent = Library.NotifHolder.Instance,
-                Name = "\0",
-                Size = UDim2New(0, 0, 0, 24),
-                BorderColor3 = FromRGB(10, 10, 10),
-                BorderSizePixel = 2,
-                AutomaticSize = Enum.AutomaticSize.XY,
-                BackgroundColor3 = FromRGB(13, 13, 13)
-            })  Items["Notification"]:AddToTheme({BackgroundColor3 = "Inline", BorderColor3 = "Outline"})
-
-            Instances:Create("UIStroke", {
-                Parent = Items["Notification"].Instance,
-                Color = FromRGB(68, 68, 68),
-                LineJoinMode = Enum.LineJoinMode.Miter,
-                ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-            }):AddToTheme({Color = "Border"})
-
-            Instances:Create("UIPadding", {
-                Parent = Items["Notification"].Instance,
-                PaddingTop = UDimNew(0, 1),
-                PaddingRight = UDimNew(0, 6),
-                PaddingLeft = UDimNew(0, 5)
-            }) 
-
-            Items["Title"] = Instances:Create("TextLabel", {
-                Parent = Items["Notification"].Instance,
-                FontFace = Library.Font,
-                TextColor3 = FromRGB(215, 215, 215),
-                BorderColor3 = FromRGB(0, 0, 0),
-                Text = Text,
-                Name = "\0",
-                Size = UDim2New(1, 0, 0, 15),
-                BackgroundTransparency = 1,
-                Position = UDim2New(0, 0, 0, 4),
-                BorderSizePixel = 0,
-                AutomaticSize = Enum.AutomaticSize.X,
-                TextSize = 12,
-                BackgroundColor3 = FromRGB(255, 255, 255)
-            }) 
-
-            Items["Liner"] = Instances:Create("Frame", {
-                Parent = Items["Notification"].Instance,
-                Name = "\0",
-                Position = UDim2New(0, -5, 0, -1),
-                BorderColor3 = FromRGB(0, 0, 0),
-                Size = UDim2New(1, 11, 0, 2),
-                BorderSizePixel = 0,
-                BackgroundColor3 = Color
-            })  
-
-            Instances:Create("UIGradient", {
-                Parent = Items["Liner"].Instance,
-                Rotation = 90,
-                Color = RGBSequence{RGBSequenceKeypoint(0, FromRGB(255, 255, 255)), RGBSequenceKeypoint(1, FromRGB(94, 94, 94))}
-            }) 
-        end
-
-        if Icon then
-            if type(Icon) == "table" then
-                Items["Icon"] = Instances:Create("ImageLabel", {
-                    Parent = Items["Notification"].Instance,
-                    ImageColor3 = Icon[2],
-                    ScaleType = Enum.ScaleType.Fit,
-                    BorderColor3 = FromRGB(0, 0, 0),
-                    Name = "\0",
-                    Image = "rbxassetid://"..Icon[1],
-                    BackgroundTransparency = 1,
-                    Position = UDim2New(0, 2, 0, 5),
-                    Size = UDim2New(0, 13, 0, 13),
-                    BorderSizePixel = 0,
-                    BackgroundColor3 = FromRGB(255, 255, 255)
-                }) 
-
-                Items["Title"].Instance.Position = UDim2New(0, 13, 0, 4)
-                Items["Liner"].Instance.Size = UDim2New(1, 13, 0, 2)
-            else
-
-            end
-        end
-
-        Items["Notification"].Instance.BackgroundTransparency = 1
-        Items["Notification"].Instance.Size = UDim2New(0, 0, 0, 0)
-        for Index, Value in Items["Notification"].Instance:GetDescendants() do
-            if Value:IsA("UIStroke") then 
-                Value.Transparency = 1
-            elseif Value:IsA("TextLabel") then 
-                Value.TextTransparency = 1
-            elseif Value:IsA("ImageLabel") then 
-                Value.ImageTransparency = 1
-            elseif Value:IsA("Frame") then 
-                Value.BackgroundTransparency = 1
-            end
-        end
-
-        Library:Thread(function()
-            Items["Notification"]:Tween(TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 0, Size = UDim2New(0, 0, 0, 24)})
-            
-            task.wait(0.06)
-
-            for Index, Value in Items["Notification"].Instance:GetDescendants() do
-                if Value:IsA("UIStroke") then
-                    Tween:Create(Value, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Transparency = 0}, true)
-                elseif Value:IsA("TextLabel") then
-                    Tween:Create(Value, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextTransparency = 0}, true)
-                elseif Value:IsA("ImageLabel") then
-                    Tween:Create(Value, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {ImageTransparency = 0}, true)
-                elseif Value:IsA("Frame") then
-                    Tween:Create(Value, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 0}, true)
-                end
-            end
-
-            task.delay(Duration + 0.1, function()
-                for Index, Value in Items["Notification"].Instance:GetDescendants() do
-                    if Value:IsA("UIStroke") then
-                        Tween:Create(Value, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Transparency = 1}, true)
-                    elseif Value:IsA("TextLabel") then
-                        Tween:Create(Value, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {TextTransparency = 1}, true)
-                    elseif Value:IsA("ImageLabel") then
-                        Tween:Create(Value, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {ImageTransparency = 1}, true)
-                    elseif Value:IsA("Frame") then
-                        Tween:Create(Value, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 1}, true)
-                    end
-                end
-
-                task.wait(0.06)
-
-                Items["Notification"]:Tween(TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {BackgroundTransparency = 1, Size = UDim2New(0, 0, 0, 0)})
-
-                task.wait(0.5)
-                Items["Notification"]:Clean()
-            end)
-        end)
     end
 
     local Components = { } do
@@ -4270,11 +4109,6 @@ local Library do
 
             Players = { }
         }
-
-        if Playerlist.Page.Columns ~= 1 then
-            Library:Notification("Playerlist can only be added to a page with 1 column.", 5, FromRGB(255, 0, 0))
-            return 
-        end
 
         local Items = { } do
             Items["Playerlist"] = Instances:Create("Frame", {
